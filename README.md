@@ -4,9 +4,6 @@
 
 CLI client for a certain Indonesian mobile internet service provider.
 
-# How to get environtment Variables
-Copy the provided environment variables and paste it into a text file named `.env` in the same directory as `main.py`.
-You can use nano or any text editor to create the file.
 
 # How to run with TERMUX
 1. Update & Upgrade Termux
@@ -29,6 +26,15 @@ cd kiel
 ```
 bash setup.sh
 ```
+Menambahkan Environment Variables:
+
+Buka https://rentry.co/me-sunset & copy
+Bikin file .env di dalam folder kiel dengan isi text yang sudah di-copy tadi dengan cara ketik
+```
+nano .env
+```
+paste kan kemudian ctrl+x y enter
+
 6. Run the script
 ```
 python main.py
@@ -46,4 +52,4 @@ By using this tool, the user agrees to comply with all applicable laws and regul
 
 ## Contact
 
-
+Bala bala
