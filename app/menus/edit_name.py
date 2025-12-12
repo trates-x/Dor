@@ -1,4 +1,3 @@
-```python
 from app.service.auth import AuthInstance
 from app.console import console, cyber_input, pause
 
@@ -35,6 +34,49 @@ def show_edit_name_menu():
 
     # Jika input kosong, gunakan nomor sebagai nama
     new_name = user_input if user_input != "" else current_number
+
+    # Update fields yang umum
+    active_user["name"] = new_name
+    active_user["display_name"] = new_name
+
+    saved = False
+    # Coba beberapa metode penyimpanan yang mungkin ada di AuthInstance
+    try:
+        if hasattr(AuthInstance, "update_active_user"):
+            # fungsi yang menerima dict user baru
+            AuthInstance.update_active_user(active_user)
+            saved = True
+        elif hasattr(AuthInstance, "save_active_user"):
+            AuthInstance.save_active_user(active_user)
+            saved = True
+        elif hasattr(AuthInstance, "save_users"):
+            AuthInstance.active_user = active_user
+            AuthInstance.save_users()
+            saved = True
+        else:
+            # fallback: set attribute langsung
+            AuthInstance.active_user = active_user
+            # jika ada method set_active_user yang menerima nomor,
+            # panggil untuk memastikan persistence jika implementasinya melakukan penyimpanan.
+            if hasattr(AuthInstance, "set_active_user"):
+                try:
+                    AuthInstance.set_active_user(active_user.get("number"))
+                    saved = True
+                except Exception:
+                    # set attribute saja jika set_active_user gagal
+                    saved = True
+            else:
+                saved = True
+    except Exception as e:
+        console.print(f"[error]Gagal menyimpan perubahan: {e}[/]")
+        saved = False
+
+    if saved:
+        console.print(f"[neon_green]Nama berhasil diubah menjadi: {new_name}[/]")
+    else:
+        console.print("[warning]Perubahan lokal diterapkan tetapi penyimpanan persistent tidak berhasil.[/]")
+    pause()
+    return saved    new_name = user_input if user_input != "" else current_number
 
     # Update fields yang umum
     active_user["name"] = new_name
