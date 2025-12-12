@@ -1,7 +1,3 @@
-```python
-# (Isi file package.py seperti semula, saya hanya menambahkan import dan beberapa handling)
-# Pastikan mengganti file package.py Anda dengan versi ini (saya sertakan seluruh konten file
-# yang dimodifikasi sehingga Anda bisa menimpa file lama).
 import json
 import sys
 
@@ -252,6 +248,284 @@ def show_package_details(api_key, tokens, package_option_code, is_enterprise, op
                 payment_for,
                 False,
                 overwrite_amount=overwrite_amount,
+            )
+            
+            if res and res.get("status", "") != "SUCCESS":
+                error_msg = res.get("message", "Unknown error")
+                if "Bizz-err.Amount.Total" in error_msg:
+                    error_msg_arr = error_msg.split("=")
+                    valid_amount = int(error_msg_arr[1].strip())
+                    
+                    print(f"Adjusted total amount to: {valid_amount}")
+                    res = settlement_balance(
+                        api_key,
+                        tokens,
+                        payment_items,
+                        payment_for,
+                        False,
+                        overwrite_amount=valid_amount,
+                    )
+                    if res and res.get("status", "") == "SUCCESS":
+                        console.print("[neon_green]Purchase successful![/]")
+            else:
+                console.print("[neon_green]Purchase successful![/]")
+            pause()
+            return True
+        elif choice == '5':
+            # Balance with Decoy v2 (use token confirmation from decoy)
+            decoy = DecoyInstance.get_decoy("balance")
+            
+            decoy_package_detail = get_package(
+                api_key,
+                tokens,
+                decoy["option_code"],
+            )
+            
+            if not decoy_package_detail:
+                console.print("[error]Failed to load decoy package details.[/]")
+                pause()
+                return False
+
+            payment_items.append(
+                PaymentItem(
+                    item_code=decoy_package_detail["package_option"]["package_option_code"],
+                    product_type="",
+                    item_price=decoy_package_detail["package_option"]["price"],
+                    item_name=decoy_package_detail["package_option"]["name"],
+                    tax=0,
+                    token_confirmation=decoy_package_detail["token_confirmation"],
+                )
+            )
+
+            overwrite_amount = price + decoy_package_detail["package_option"]["price"]
+            res = settlement_balance(
+                api_key,
+                tokens,
+                payment_items,
+                "🤫",
+                False,
+                overwrite_amount=overwrite_amount,
+                token_confirmation_idx=1
+            )
+            
+            if res and res.get("status", "") != "SUCCESS":
+                error_msg = res.get("message", "Unknown error")
+                if "Bizz-err.Amount.Total" in error_msg:
+                    error_msg_arr = error_msg.split("=")
+                    valid_amount = int(error_msg_arr[1].strip())
+                    
+                    print(f"Adjusted total amount to: {valid_amount}")
+                    res = settlement_balance(
+                        api_key,
+                        tokens,
+                        payment_items,
+                        "🤫",
+                        False,
+                        overwrite_amount=valid_amount,
+                        token_confirmation_idx=-1
+                    )
+                    if res and res.get("status", "") == "SUCCESS":
+                        console.print("[neon_green]Purchase successful![/]")
+            else:
+                console.print("[neon_green]Purchase successful![/]")
+            pause()
+            return True
+        elif choice == '6':
+            # QRIS decoy + Rpx
+            decoy = DecoyInstance.get_decoy("qris")
+            
+            decoy_package_detail = get_package(
+                api_key,
+                tokens,
+                decoy["option_code"],
+            )
+            
+            if not decoy_package_detail:
+                console.print("[error]Failed to load decoy package details.[/]")
+                pause()
+                return False
+
+            payment_items.append(
+                PaymentItem(
+                    item_code=decoy_package_detail["package_option"]["package_option_code"],
+                    product_type="",
+                    item_price=decoy_package_detail["package_option"]["price"],
+                    item_name=decoy_package_detail["package_option"]["name"],
+                    tax=0,
+                    token_confirmation=decoy_package_detail["token_confirmation"],
+                )
+            )
+            
+            console.print(Panel(
+                f"Harga Paket Utama: Rp {price}\nHarga Paket Decoy: Rp {decoy_package_detail['package_option']['price']}\n\nSilahkan sesuaikan amount (trial & error, 0 = malformed)",
+                title="DECOY QRIS INFO",
+                border_style="warning"
+            ))
+
+            show_qris_payment(
+                api_key,
+                tokens,
+                payment_items,
+                "SHARE_PACKAGE",
+                True,
+                token_confirmation_idx=1
+            )
+            
+            pause()
+            return True
+        elif choice == '7':
+            # QRIS decoy + Rp0
+            decoy = DecoyInstance.get_decoy("qris0")
+            
+            decoy_package_detail = get_package(
+                api_key,
+                tokens,
+                decoy["option_code"],
+            )
+            
+            if not decoy_package_detail:
+                console.print("[error]Failed to load decoy package details.[/]")
+                pause()
+                return False
+
+            payment_items.append(
+                PaymentItem(
+                    item_code=decoy_package_detail["package_option"]["package_option_code"],
+                    product_type="",
+                    item_price=decoy_package_detail["package_option"]["price"],
+                    item_name=decoy_package_detail["package_option"]["name"],
+                    tax=0,
+                    token_confirmation=decoy_package_detail["token_confirmation"],
+                )
+            )
+            
+            console.print(Panel(
+                f"Harga Paket Utama: Rp {price}\nHarga Paket Decoy: Rp {decoy_package_detail['package_option']['price']}\n\nSilahkan sesuaikan amount (trial & error, 0 = malformed)",
+                title="DECOY QRIS INFO",
+                border_style="warning"
+            ))
+
+            show_qris_payment(
+                api_key,
+                tokens,
+                payment_items,
+                "SHARE_PACKAGE",
+                True,
+                token_confirmation_idx=1
+            )
+            
+            pause()
+            return True
+        elif choice == '8':
+            #Pulsa N kali
+            use_decoy_for_n_times = cyber_input("Use decoy package? (y/n)").strip().lower() == 'y'
+            n_times_str = cyber_input("Enter number of times to purchase (e.g., 3)").strip()
+
+            delay_seconds_str = cyber_input("Enter delay between purchases in seconds (e.g., 25)").strip()
+            if not delay_seconds_str.isdigit():
+                delay_seconds_str = "0"
+
+            try:
+                n_times = int(n_times_str)
+                if n_times < 1:
+                    raise ValueError("Number must be at least 1.")
+            except ValueError:
+                console.print("[error]Invalid number entered. Please enter a valid integer.[/]")
+                pause()
+                continue
+            purchase_n_times_by_option_code(
+                n_times,
+                option_code=package_option_code,
+                use_decoy=use_decoy_for_n_times,
+                delay_seconds=int(delay_seconds_str),
+                pause_on_success=False,
+                token_confirmation_idx=1
+            )
+        elif choice.lower() == 'b':
+            settlement_bounty(
+                api_key=api_key,
+                tokens=tokens,
+                token_confirmation=token_confirmation,
+                ts_to_sign=ts_to_sign,
+                payment_target=package_option_code,
+                price=price,
+                item_name=variant_name
+            )
+            pause()
+            return True
+        elif choice.lower() == 'ba':
+            destination_msisdn = cyber_input("Masukkan nomor tujuan bonus (mulai dengan 62)").strip()
+            bounty_allotment(
+                api_key=api_key,
+                tokens=tokens,
+                ts_to_sign=ts_to_sign,
+                destination_msisdn=destination_msisdn,
+                item_name=option_name,
+                item_code=package_option_code,
+                token_confirmation=token_confirmation,
+            )
+            pause()
+            return True
+        elif choice.lower() == 'l':
+            settlement_loyalty(
+                api_key=api_key,
+                tokens=tokens,
+                token_confirmation=token_confirmation,
+                ts_to_sign=ts_to_sign,
+                payment_target=package_option_code,
+                price=price,
+            )
+            pause()
+            return True
+        else:
+            console.print("[warning]Purchase cancelled.[/]")
+            return False
+    pause()
+    sys.exit(0)
+
+def get_packages_by_family(
+    family_code: str,
+    is_enterprise: bool | None = None,
+    migration_type: str | None = None
+):
+    api_key = AuthInstance.api_key
+    tokens = AuthInstance.get_active_tokens()
+    if not tokens:
+        console.print("[error]No active user tokens found.[/]")
+        pause()
+        return None
+    
+    packages = []
+    
+    with loading_animation("Fetching family packages..."):
+        data = get_family(
+            api_key,
+            tokens,
+            family_code,
+            is_enterprise,
+            migration_type
+        )
+    
+    if not data:
+        console.print("[error]Failed to load family data.[/]")
+        pause()
+        return None
+
+    price_currency = "Rp"
+    rc_bonus_type = data["package_family"].get("rc_bonus_type", "")
+    if rc_bonus_type == "MYREWARDS":
+        price_currency = "Poin"
+    
+    in_package_menu = True
+    while in_package_menu:
+        clear_screen()
+
+        # Family Info Panel
+        family_table = Table(show_header=False, box=None)
+        family_table.add_column("Key", style="neon_cyan", justify="right")
+        family_table.add_column("Value", style="bold white")
+
+        family_table.add_row("Family Name           overwrite_amount=overwrite_amount,
             )
             
             if res and res.get("status", "") != "SUCCESS":
