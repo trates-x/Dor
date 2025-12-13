@@ -91,7 +91,7 @@ def show_account_menu():
             continue
         
         # User Table with requested order: No, Nama, Nomor, Type, Baru, Status
-        table = Table(show_header=True, header_style="neon_pink", box= none, padding=(0, 5))
+        table = Table(show_header=True, header_style="neon_pink", box=none, padding=(0, 5))
         table.add_column("No", style="neon_green", justify="right")
         table.add_column("Nama", style="bold white")
         table.add_column("Nomor", style="bold white")
