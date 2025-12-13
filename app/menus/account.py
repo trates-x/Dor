@@ -106,7 +106,7 @@ def show_account_menu():
         else:
             for idx, user in enumerate(users):
                 is_active = active_user and user["number"] == active_user["number"]
-                active_marker = "[bold neon_green]ACTIVE[/]" if is_active else ""
+                active_marker = "[bold neon_green]Aktif[/]" if is_active else ""
 
                 number = str(user.get("number", ""))
                 name = user.get("e", "")  # Optional friendly name
