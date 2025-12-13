@@ -97,7 +97,7 @@ def show_account_menu():
         table.add_column("Nomor", style="bold white")
         table.add_column("Type", style="cyan")
         # <-- Tambahkan kolom "Baru" supaya jumlah kolom sama dengan values di add_row
-        table.add_column("Baru", style="neon_pink", justify="center")
+        
         # <-- Pastikan kolom Status ada dan justify center agar ACTIVE tampil center
         table.add_column("Status", style="neon_green", justify="center")
 
@@ -116,7 +116,7 @@ def show_account_menu():
                 new_marker = "[bold neon_pink]NEW[/]" if user.get("number") in getattr(AuthInstance, "newly_added_numbers", set()) else ""
 
                 # Pastikan jumlah nilai di add_row sama dengan jumlah kolom (6)
-                table.add_row(str(idx + 1), name, number, sub_type, new_marker, active_marker)
+                table.add_row(str(idx + 1), name, number, sub_type, active_marker)
 
         print_cyber_panel(table, title="SAVED ACCOUNTS")
         
