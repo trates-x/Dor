@@ -96,7 +96,6 @@ def show_account_menu():
         table.add_column("Nama", style="bold white")
         table.add_column("Nomor", style="bold white")
         table.add_column("Type", style="cyan")
-        table.add_column("Baru", style="neon_pink", justify="center")
         table.add_column("Status", justify="center")
 
         if not users or len(users) == 0:
